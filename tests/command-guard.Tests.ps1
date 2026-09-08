@@ -35,4 +35,22 @@ Describe 'Windows command guard' {
 
         $LASTEXITCODE | Should -Be 0
     }
+
+    It 'denies nested output, redirection, and PowerShell script-block bypasses' {
+        $commands = @(
+            'Write-Output $(Remove-Item -Recurse -Force C:/)',
+            'Write-Output secret > .env',
+            'powershell.exe -Command "& { Remove-Item -Recurse -Force C:/ }"'
+        )
+
+        foreach ($command in $commands) {
+            $payload = @{
+                tool_name = 'PowerShell'
+                tool_input = @{ command = $command }
+            } | ConvertTo-Json -Compress
+            $output = $payload | & $python.Path $guardPath 2>&1
+
+            $LASTEXITCODE | Should -Be 2 -Because "'$command' must not bypass the guard; output: $($output -join ' ')"
+        }
+    }
 }
