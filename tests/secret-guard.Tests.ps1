@@ -48,8 +48,15 @@ Describe 'secret guard' {
         Push-Location $repository
         try {
             & git init --quiet
-            $testToken = 'ghp_' + '1234567890' + 'abcdefghijklmnopqrstuvwxyz'
-            "github_token=$testToken" | Set-Content -LiteralPath 'leak.txt' -Encoding Ascii
+            & git config user.name 'Vibe Runbooks Test'
+            & git config user.email 'test@example.invalid'
+            & git config commit.gpgsign false
+            'baseline' | Set-Content -LiteralPath 'README.md' -Encoding Ascii
+            & git add README.md
+            & git commit --quiet -m 'test: baseline'
+
+            $testToken = 'AK' + 'IA' + 'Q7W8E9R0T1Y2U3I4'
+            "aws_access_key_id=$testToken" | Set-Content -LiteralPath 'leak.txt' -Encoding Ascii
             & git add leak.txt
             & $gitleaks.Source git --pre-commit --staged --redact --no-banner *> $null
             $scanExit = $LASTEXITCODE

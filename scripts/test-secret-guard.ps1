@@ -21,9 +21,15 @@ try {
     Push-Location $testRoot
     try {
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('init', '--quiet') | Out-Null
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('config', 'user.name', 'Vibe Runbooks Test') | Out-Null
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('config', 'user.email', 'test@example.invalid') | Out-Null
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('config', 'commit.gpgsign', 'false') | Out-Null
+        'baseline' | Set-Content -LiteralPath 'README.md' -Encoding Ascii
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'README.md') | Out-Null
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('commit', '--quiet', '-m', 'test: baseline') | Out-Null
 
-        $testToken = 'ghp_' + '1234567890' + 'abcdefghijklmnopqrstuvwxyz'
-        "github_token=$testToken" | Set-Content -LiteralPath 'test-secret.txt' -Encoding Ascii
+        $testToken = 'AK' + 'IA' + 'Q7W8E9R0T1Y2U3I4'
+        "aws_access_key_id=$testToken" | Set-Content -LiteralPath 'test-secret.txt' -Encoding Ascii
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'test-secret.txt') | Out-Null
         & gitleaks git --pre-commit --staged --redact --no-banner *> $null
         if ($LASTEXITCODE -ne 1) {
