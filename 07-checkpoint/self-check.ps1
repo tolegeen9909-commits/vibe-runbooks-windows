@@ -17,7 +17,18 @@ function Add-CheckResult {
 }
 
 Add-CheckResult 'winget' (Test-RunbookCommand 'winget')
+Add-CheckResult 'Preflight verified' (Test-RunbookStepCompleted '00-preflight:verified')
+Add-CheckResult 'Windows setup verified' (Test-RunbookStepCompleted '01-windows-setup:verified')
+Add-CheckResult 'Foundation verified' (Test-RunbookStepCompleted '02-foundation:verified')
 Add-CheckResult 'Git' (Test-RunbookCommand 'git')
+
+$gitIdentityReady = $false
+if (Test-RunbookCommand 'git') {
+    $gitName = (& git config --global --get user.name 2>$null | Out-String).Trim()
+    $gitEmail = (& git config --global --get user.email 2>$null | Out-String).Trim()
+    $gitIdentityReady = [bool]($gitName -and $gitEmail)
+}
+Add-CheckResult 'Git identity' $gitIdentityReady
 
 $ghAuthenticated = $false
 if (Test-RunbookCommand 'gh') {
@@ -25,14 +36,29 @@ if (Test-RunbookCommand 'gh') {
     $ghAuthenticated = $LASTEXITCODE -eq 0
 }
 Add-CheckResult 'GitHub login' $ghAuthenticated
+Add-CheckResult 'Gitleaks' (Test-RunbookCommand 'gitleaks')
+
+$guardPath = Join-Path $env:USERPROFILE '.vibecoding\hooks\command-guard.py'
+$settingsPath = Join-Path $env:USERPROFILE '.claude\settings.json'
+$guardConfigured = $false
+if ((Test-Path -LiteralPath $guardPath) -and (Test-Path -LiteralPath $settingsPath)) {
+    $guardConfigured = (Get-Content -LiteralPath $settingsPath -Raw) -match 'command-guard\.py'
+}
+Add-CheckResult 'Claude command guard' $guardConfigured
+Add-CheckResult 'Git/GitHub phase verified' (Test-RunbookStepCompleted '03-git-github:verified')
 Add-CheckResult 'Node + npm' ((Test-RunbookCommand 'node') -and (Test-RunbookCommand 'npm.cmd'))
 Add-CheckResult 'Claude Code' (Test-RunbookCommand 'claude')
 Add-CheckResult 'Codex CLI' (Test-RunbookCommand 'codex')
+Add-CheckResult 'AI helpers phase verified' (Test-RunbookStepCompleted '04-ai-helpers:verified')
+
+$trackSelectionRecorded = @($state.completedSteps | Where-Object { $_ -like 'tracks:selected-*' }).Count -gt 0
+Add-CheckResult 'Track selection recorded' $trackSelectionRecorded
 
 if ($tracks -contains 'flutter') {
     Add-CheckResult 'Flutter' (Test-RunbookCommand 'flutter')
     Add-CheckResult 'Android Studio' (Test-WinGetPackageInstalled -PackageId 'Google.AndroidStudio')
     Add-CheckResult 'Flutter phase verified' (Test-RunbookStepCompleted '05-flutter:verified')
+    Add-CheckResult 'Flutter project pushed' (Test-RunbookStepCompleted '06-first-win:pushed')
     Add-CheckResult 'Flutter project in GitHub' (Test-RunbookStepCompleted '06-first-win:verified')
 }
 
@@ -46,7 +72,11 @@ if ($tracks -contains 'web') {
     }
     Add-CheckResult 'Netlify login' $netlifyAuthenticated
     Add-CheckResult 'Website in GitHub' (Test-RunbookStepCompleted '06w-first-site:pushed')
-    Add-CheckResult 'Website production deploy' (Test-RunbookStepCompleted '06w-first-site:verified')
+    Add-CheckResult 'Website preview deploy' (Test-RunbookStepCompleted '06w-first-site:previewed')
+    Add-CheckResult 'Website production deploy' (Test-RunbookStepCompleted '06w-first-site:production')
+    Add-CheckResult 'Website phase verified' (Test-RunbookStepCompleted '06w-first-site:verified')
+    Add-CheckResult 'Preview URL saved' ((Get-RunbookArtifact -Name 'netlifyPreviewUrl') -match '^https://')
+    Add-CheckResult 'Production URL saved' ((Get-RunbookArtifact -Name 'netlifyProductionUrl') -match '^https://')
 }
 
 $passed = @($checks | Where-Object Passed).Count

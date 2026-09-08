@@ -36,28 +36,47 @@ if (-not $ArchivePath) {
         throw 'Официальный manifest не содержит текущий stable release.'
     }
 
+    $sha256Property = $release.PSObject.Properties['sha256']
+    if (-not $sha256Property -or -not $sha256Property.Value) {
+        throw 'Официальный manifest Flutter не содержит SHA-256; загрузка остановлена.'
+    }
+    $expectedHash = ([string]$sha256Property.Value).ToLowerInvariant()
     $ArchivePath = Join-Path $env:TEMP ([IO.Path]::GetFileName($release.archive))
     $downloadUri = 'https://storage.googleapis.com/flutter_infra_release/releases/{0}' -f $release.archive
-    if (-not (Test-Path -LiteralPath $ArchivePath)) {
-        if ($PSCmdlet.ShouldProcess($downloadUri, "Скачать Flutter в $ArchivePath")) {
-            Write-RunbookInfo 'Загрузка большая и может занять несколько минут.'
-            Invoke-WebRequest -Uri $downloadUri -OutFile $ArchivePath -UseBasicParsing
+
+    $needsDownload = $true
+    if (Test-Path -LiteralPath $ArchivePath -PathType Leaf) {
+        $cachedHash = (Get-FileHash -LiteralPath $ArchivePath -Algorithm SHA256).Hash.ToLowerInvariant()
+        if ($cachedHash -eq $expectedHash) {
+            $needsDownload = $false
+            Write-RunbookOk 'Кэшированный архив Flutter прошёл проверку SHA-256.'
+        }
+        else {
+            $invalidPath = "$ArchivePath.invalid-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))"
+            if ($PSCmdlet.ShouldProcess($ArchivePath, "Сохранить повреждённый архив как $invalidPath")) {
+                Move-Item -LiteralPath $ArchivePath -Destination $invalidPath
+                Write-RunbookWarning "Старый архив не прошёл SHA-256 и сохранён как: $invalidPath"
+            }
         }
     }
 
-    if ($WhatIfPreference -and -not (Test-Path -LiteralPath $ArchivePath)) {
+    if ($needsDownload) {
+        $partialPath = "$ArchivePath.$([guid]::NewGuid().ToString('N')).partial"
+        if ($PSCmdlet.ShouldProcess($downloadUri, "Скачать Flutter во временный файл $partialPath")) {
+            Write-RunbookInfo 'Загрузка большая и может занять несколько минут.'
+            Invoke-WebRequest -Uri $downloadUri -OutFile $partialPath -UseBasicParsing
+            $actualHash = (Get-FileHash -LiteralPath $partialPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actualHash -ne $expectedHash) {
+                throw "SHA-256 загруженного архива Flutter не совпал. Неполный файл оставлен для диагностики: $partialPath"
+            }
+            Move-Item -LiteralPath $partialPath -Destination $ArchivePath
+            Write-RunbookOk 'SHA-256 архива совпадает; атомарная замена завершена.'
+        }
+    }
+
+    if ($WhatIfPreference) {
         Write-RunbookInfo 'WhatIf: загрузка и распаковка Flutter пропущены.'
         return
-    }
-
-    $sha256Property = $release.PSObject.Properties['sha256']
-    if ($sha256Property -and $sha256Property.Value) {
-        $actualHash = (Get-FileHash -LiteralPath $ArchivePath -Algorithm SHA256).Hash.ToLowerInvariant()
-        $expectedHash = ([string]$sha256Property.Value).ToLowerInvariant()
-        if ($actualHash -ne $expectedHash) {
-            throw 'SHA-256 архива Flutter не совпал с официальным manifest. Архив не распакован.'
-        }
-        Write-RunbookOk 'SHA-256 архива совпадает.'
     }
 }
 

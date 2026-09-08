@@ -11,10 +11,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path (Split-Path -Parent $PSScriptRoot) 'scripts\lib.ps1')
 
 Assert-SupportedWindows
-foreach ($command in @('git', 'gh')) {
-    if (-not (Test-RunbookCommand $command)) {
-        throw "$command не найден. Сначала пройди фазу 03."
-    }
+if (-not (Test-RunbookCommand 'git')) {
+    throw 'git не найден. Сначала пройди фазу 03.'
 }
 if (-not (Test-Path -LiteralPath (Join-Path $ProjectPath 'pubspec.yaml'))) {
     throw "Flutter-проект не найден: $ProjectPath"
@@ -67,6 +65,9 @@ try {
         exit 0
     }
 
+    if (-not (Test-RunbookCommand 'gh')) {
+        throw 'gh не найден. Сначала пройди фазу 03.'
+    }
     & gh auth status *> $null
     if ($LASTEXITCODE -ne 0) {
         throw 'Вход GitHub не выполнен. Запусти gh auth login --web --git-protocol https.'

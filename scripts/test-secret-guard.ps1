@@ -28,21 +28,22 @@ try {
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'README.md') | Out-Null
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('commit', '--quiet', '-m', 'test: baseline') | Out-Null
 
+        $baselineHead = (& git rev-parse HEAD | Out-String).Trim()
+
         $testToken = 'AK' + 'IA' + 'Q7W6E5R4T3Y2U7I6'
         "aws_access_key_id=$testToken" | Set-Content -LiteralPath 'test-secret.txt' -Encoding Ascii
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'test-secret.txt') | Out-Null
-        & gitleaks git --pre-commit --staged --redact --no-banner *> $null
-        if ($LASTEXITCODE -ne 1) {
-            throw "Gitleaks не заблокировал тестовый секрет (exit $LASTEXITCODE)."
+        & git commit --quiet -m 'test: must be blocked' *> $null
+        $blockedExit = $LASTEXITCODE
+        $headAfterBlockedCommit = (& git rev-parse HEAD | Out-String).Trim()
+        if ($blockedExit -eq 0 -or $headAfterBlockedCommit -ne $baselineHead) {
+            throw "Pre-commit hook не заблокировал тестовый секрет (exit $blockedExit)."
         }
 
-        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('reset', '--quiet') | Out-Null
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('reset', '--quiet', 'HEAD') | Out-Null
         'обычный безопасный текст' | Set-Content -LiteralPath 'safe.txt' -Encoding UTF8
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'safe.txt') | Out-Null
-        & gitleaks git --pre-commit --staged --redact --no-banner *> $null
-        if ($LASTEXITCODE -ne 0) {
-            throw "Gitleaks заблокировал безопасный файл (exit $LASTEXITCODE)."
-        }
+        Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('commit', '--quiet', '-m', 'test: safe content') | Out-Null
     }
     finally {
         Pop-Location

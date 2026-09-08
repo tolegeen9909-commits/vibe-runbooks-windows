@@ -44,6 +44,9 @@ if ($memoryGb -lt 8) {
 if ($freeGb -lt 15) {
     $problems.Add('Меньше 15 GB свободного места: сначала освободи диск.')
 }
+if (-not (Test-RunbookCommand 'winget')) {
+    $problems.Add('winget не найден. Установи App Installer из Microsoft Store и повтори проверку.')
+}
 
 Write-RunbookStep 'Карта инструментов'
 $tools = @(
@@ -79,4 +82,5 @@ if ($problems.Count -gt 0) {
     exit 1
 }
 
+Mark-RunbookStep '00-preflight:passed'
 Write-RunbookOk 'Базовые требования выполнены. Пустые пункты — это будущие шаги, не ошибки.'

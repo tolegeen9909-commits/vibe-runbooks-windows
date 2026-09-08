@@ -16,8 +16,7 @@ if (-not (Test-Path -LiteralPath $explorerKey)) {
 
 New-ItemProperty -Path $explorerKey -Name Hidden -PropertyType DWord -Value 1 -Force | Out-Null
 New-ItemProperty -Path $explorerKey -Name HideFileExt -PropertyType DWord -Value 0 -Force | Out-Null
-New-ItemProperty -Path $explorerKey -Name ShowSuperHidden -PropertyType DWord -Value 1 -Force | Out-Null
-Write-RunbookOk 'Проводник будет показывать расширения, скрытые и системные файлы.'
+Write-RunbookOk 'Проводник будет показывать расширения и обычные скрытые файлы. Защищённые системные файлы остаются скрытыми.'
 
 $projectsPath = Join-Path $env:SystemDrive 'Projects'
 if (-not (Test-Path -LiteralPath $projectsPath)) {

@@ -292,6 +292,42 @@ function Test-RunbookStepCompleted {
     return @($state.completedSteps) -contains $Step
 }
 
+function Set-RunbookArtifact {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Value
+    )
+
+    $state = Read-RunbookState
+    if (-not $state.PSObject.Properties['artifacts'] -or $null -eq $state.artifacts) {
+        $state | Add-Member -MemberType NoteProperty -Name artifacts -Value ([pscustomobject]@{})
+    }
+    if ($state.artifacts.PSObject.Properties[$Name]) {
+        $state.artifacts.$Name = $Value
+    }
+    else {
+        $state.artifacts | Add-Member -MemberType NoteProperty -Name $Name -Value $Value
+    }
+    Write-RunbookState -State $state
+    Add-ProgressLogEntry -Message "artifact $Name saved"
+}
+
+function Get-RunbookArtifact {
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Name)
+
+    $state = Read-RunbookState
+    if (-not $state.PSObject.Properties['artifacts'] -or $null -eq $state.artifacts) {
+        return $null
+    }
+    $property = $state.artifacts.PSObject.Properties[$Name]
+    if ($property) {
+        return [string]$property.Value
+    }
+    return $null
+}
+
 function Set-RunbookTrack {
     [CmdletBinding()]
     param(
@@ -331,4 +367,30 @@ function Complete-RunbookVerification {
         Write-RunbookInfo $failure
     }
     return $false
+}
+
+function Get-GitleaksHookContent {
+    [CmdletBinding()]
+    param()
+
+    return @'
+#!/usr/bin/env bash
+# vibe-runbooks-windows:gitleaks
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "STOP: gitleaks is unavailable; commit was blocked for safety." >&2
+  exit 2
+fi
+
+gitleaks git --pre-commit --staged --redact --no-banner
+code=$?
+if [ "$code" -eq 1 ]; then
+  echo "STOP: a staged secret may be present. Remove it or move it to .env." >&2
+  exit 1
+fi
+if [ "$code" -gt 1 ]; then
+  echo "STOP: gitleaks could not complete (exit $code); commit was blocked for safety." >&2
+  exit "$code"
+fi
+exit 0
+'@
 }

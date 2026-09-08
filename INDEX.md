@@ -20,9 +20,10 @@
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\00-preflight\check-system.ps1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\00-preflight\verify.ps1
 ```
 
-Этот шаг ничего не изменяет. Если Windows не поддерживается или места недостаточно, сначала реши этот вопрос.
+Этот шаг не меняет системные настройки и только записывает локальный прогресс. Если Windows не поддерживается или места недостаточно, сначала реши этот вопрос.
 
 ### Фаза 01 · Windows setup
 
@@ -96,13 +97,13 @@ Android Studio Setup Wizard и создание виртуального уст�
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\06-first-win\create-and-run.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\06-first-win\first-edit-commit.ps1
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\06-first-win\verify.ps1
 ```
 
 После явного согласия на внешнее действие:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\06-first-win\first-edit-commit.ps1 -Publish
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\06-first-win\verify.ps1
 ```
 
 ## Трек B · Web/Netlify

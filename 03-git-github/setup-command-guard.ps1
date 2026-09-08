@@ -9,22 +9,51 @@ $ErrorActionPreference = 'Stop'
 Assert-SupportedWindows
 Write-RunbookStep 'Подключаю Windows command guard к Claude Code'
 
+function Test-PythonRuntime {
+    param(
+        [Parameter(Mandatory)][string]$Command,
+        [string[]]$Prefix = @()
+    )
+
+    $resolved = Get-Command $Command -ErrorAction SilentlyContinue
+    if (-not $resolved) {
+        return $false
+    }
+    $pathProperty = $resolved.PSObject.Properties['Path']
+    $sourceProperty = $resolved.PSObject.Properties['Source']
+    $resolvedPath = if ($pathProperty -and $pathProperty.Value) {
+        [string]$pathProperty.Value
+    }
+    elseif ($sourceProperty) {
+        [string]$sourceProperty.Value
+    }
+    else {
+        ''
+    }
+    if ($resolvedPath -match '[\\/]Microsoft[\\/]WindowsApps[\\/]python(?:3)?\.exe$') {
+        return $false
+    }
+
+    $major = (& $Command @Prefix '-c' 'import sys; print(sys.version_info[0])' 2>$null | Out-String).Trim()
+    return ($LASTEXITCODE -eq 0 -and $major -eq '3')
+}
+
 $pythonExe = $null
 $pythonPrefix = @()
-if (Test-RunbookCommand 'py.exe') {
+if (Test-PythonRuntime -Command 'py.exe' -Prefix @('-3')) {
     $pythonExe = 'py.exe'
     $pythonPrefix = @('-3')
 }
-elseif (Test-RunbookCommand 'python.exe') {
+elseif (Test-PythonRuntime -Command 'python.exe') {
     $pythonExe = 'python.exe'
 }
 else {
     Install-WinGetPackage -PackageId 'Python.Python.3.14' -DisplayName 'Python 3.14' | Out-Null
-    if (Test-RunbookCommand 'py.exe') {
+    if (Test-PythonRuntime -Command 'py.exe' -Prefix @('-3')) {
         $pythonExe = 'py.exe'
         $pythonPrefix = @('-3')
     }
-    elseif (Test-RunbookCommand 'python.exe') {
+    elseif (Test-PythonRuntime -Command 'python.exe') {
         $pythonExe = 'python.exe'
     }
 }
@@ -51,14 +80,12 @@ $settingsPath = Join-Path $claudeDir 'settings.json'
 New-Item -ItemType Directory -Path $claudeDir -Force | Out-Null
 
 $settings = [pscustomobject]@{}
-if (Test-Path -LiteralPath $settingsPath) {
+$settingsExisted = Test-Path -LiteralPath $settingsPath
+if ($settingsExisted) {
     $raw = Get-Content -LiteralPath $settingsPath -Raw
     if (-not [string]::IsNullOrWhiteSpace($raw)) {
         $settings = $raw | ConvertFrom-Json
     }
-    $backupPath = "$settingsPath.backup-command-guard-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))"
-    Copy-Item -LiteralPath $settingsPath -Destination $backupPath
-    Write-RunbookInfo "Резервная копия настроек: $backupPath"
 }
 
 if (-not $settings.PSObject.Properties['hooks'] -or $null -eq $settings.hooks) {
@@ -79,6 +106,11 @@ foreach ($matcher in $existingMatchers) {
 }
 
 if (-not $alreadyConfigured) {
+    if ($settingsExisted) {
+        $backupPath = "$settingsPath.backup-command-guard-$([DateTime]::UtcNow.ToString('yyyyMMddHHmmss'))"
+        Copy-Item -LiteralPath $settingsPath -Destination $backupPath
+        Write-RunbookInfo "Резервная копия настроек: $backupPath"
+    }
     $prefixText = if ($pythonPrefix.Count -gt 0) { ($pythonPrefix -join ' ') + ' ' } else { '' }
     $guardCommand = '{0} {1}"{2}"' -f $pythonExe, $prefixText, $guardPath
     $entry = [pscustomobject]@{

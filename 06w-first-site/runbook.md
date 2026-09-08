@@ -36,11 +36,13 @@ powershell -ExecutionPolicy Bypass -File .\06w-first-site\publish-site.ps1 -Prev
 
 При первом запуске Netlify попросит создать или связать сайт, выбрать team и уникальное имя. Это ожидаемая ручная стоп-точка; связь хранится в `.netlify\state.json`, а папка `.netlify` уже исключена из Git.
 
-Открой Draft URL. Только после проверки и нового явного «да»:
+Скрипт покажет Draft URL и сохранит его в локальном `state\progress.json`. Открой URL и проверь сайт. Только после проверки и нового явного «да»:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\06w-first-site\publish-site.ps1 -Production
 ```
+
+Production URL тоже будет показан и сохранён.
 
 Проверка:
 

@@ -26,17 +26,10 @@ powershell -ExecutionPolicy Bypass -File .\06-first-win\create-and-run.ps1
 powershell -ExecutionPolicy Bypass -File .\06-first-win\first-edit-commit.ps1
 ```
 
-6. Скрипт остановится перед внешним push. После явного «да», если commit уже создан, выполни:
+6. Скрипт остановится перед внешним push. После явного «да» повтори тот же скрипт с `-Publish`. Он создаст private-репозиторий или отправит текущую ветку в уже настроенный `origin`:
 
 ```powershell
-Set-Location C:\Projects\vibecoding\vibecoding_first_app
-gh repo create vibecoding_first_app --private --source . --remote origin --push
-```
-
-Если `origin` уже существует:
-
-```powershell
-git push -u origin HEAD
+powershell -ExecutionPolicy Bypass -File .\06-first-win\first-edit-commit.ps1 -Publish
 ```
 
 7. Проверка:

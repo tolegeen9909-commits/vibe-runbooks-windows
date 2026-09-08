@@ -2,7 +2,7 @@
 
 Связанная спецификация: `docs/specs/2026-09-08-vibe-runbooks-windows.md`.
 
-Статус: Gate 3 — реализация утверждена и выполняется.
+Статус: Gate 4 — устранение замечаний независимого review.
 
 ## Архитектура и поток работы
 
@@ -62,6 +62,7 @@ AGENTS.md
   "selectedTracks": [],
   "completedSteps": [],
   "lastCheckpoint": null,
+  "artifacts": {},
   "notes": []
 }
 ```
@@ -124,6 +125,7 @@ AGENTS.md
 ### Фазы
 
 - `00-preflight/check-system.ps1`
+- `00-preflight/verify.ps1`
 - `00-preflight/runbook.md`
 - `01-windows-setup/setup-windows-defaults.ps1`
 - `01-windows-setup/install-extra-apps.ps1`
@@ -208,7 +210,7 @@ AGENTS.md
 - [x] Создать feature-ветку `codex/windows-runbooks-mvp`.
 - [x] Добавить корневые правила, `.gitignore`, `.gitattributes` и обязательный раздел Open Design в `AGENTS.md`.
 - [x] Реализовать `scripts/lib.ps1` и state-модель.
-- [x] Реализовать фазу 00 и её read-only проверку.
+- [x] Реализовать фазу 00 с проверкой без изменения системных настроек.
 - [x] Реализовать фазу 01 без отключения системной безопасности.
 - [x] Реализовать фазу 02 и проверку `winget`/Terminal/PowerShell/`tree`.
 - [x] Реализовать фазу 03: Git, GitHub, identity, Gitleaks и command guard.

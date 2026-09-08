@@ -19,10 +19,10 @@ else { $failures.Add('Нужен PowerShell 5.1 или новее.') }
 if (Test-RunbookCommand 'tree.com') { $passed++; Write-RunbookOk 'Встроенная команда tree.com доступна.' }
 else { $failures.Add('Встроенная команда tree.com не найдена.') }
 
-if (Test-RunbookCommand 'wt.exe') { Write-RunbookOk 'Windows Terminal доступен.' }
-else { Write-RunbookWarning 'wt.exe пока не виден. Закрой терминал и открой заново.' }
+if (Test-RunbookCommand 'wt.exe') { $passed++; Write-RunbookOk 'Windows Terminal доступен.' }
+else { $failures.Add('wt.exe не найден. Закрой терминал, открой Windows Terminal заново и повтори проверку.') }
 
-$ok = Complete-RunbookVerification -Phase '02' -Passed $passed -Required 3 -Failures @($failures)
+$ok = Complete-RunbookVerification -Phase '02' -Passed $passed -Required 4 -Failures @($failures)
 if ($ok) {
     Mark-RunbookStep '02-foundation:verified'
     exit 0

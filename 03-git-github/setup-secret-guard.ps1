@@ -75,23 +75,7 @@ if (Test-Path -LiteralPath $hookPath) {
     }
 }
 
-$hookContent = @'
-#!/usr/bin/env bash
-# vibe-runbooks-windows:gitleaks
-if command -v gitleaks >/dev/null 2>&1; then
-  gitleaks git --pre-commit --staged --redact --no-banner >/dev/null 2>&1
-  code=$?
-  if [ "$code" -eq 1 ]; then
-    echo "STOP: a staged secret may be present. Remove it or move it to .env." >&2
-    exit 1
-  fi
-  if [ "$code" -gt 1 ]; then
-    echo "STOP: gitleaks could not complete (exit $code); commit was blocked for safety." >&2
-    exit "$code"
-  fi
-fi
-exit 0
-'@
+$hookContent = Get-GitleaksHookContent
 $hookContent | Set-Content -LiteralPath $hookPath -Encoding Ascii
 
 $currentHooksPath = (& git config --global --get core.hooksPath 2>$null | Out-String).Trim()

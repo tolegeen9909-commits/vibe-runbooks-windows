@@ -56,6 +56,16 @@ Describe 'scripts/lib.ps1' {
         @($state.selectedTracks)[0] | Should -Be 'web'
     }
 
+    It 'stores and updates named artifacts without exposing them in the template' {
+        Set-RunbookArtifact -Name 'netlifyPreviewUrl' -Value 'https://preview.example.test'
+        Set-RunbookArtifact -Name 'netlifyPreviewUrl' -Value 'https://preview-2.example.test'
+
+        (Get-RunbookArtifact -Name 'netlifyPreviewUrl') | Should -Be 'https://preview-2.example.test'
+        (Get-RunbookArtifact -Name 'missing') | Should -BeNullOrEmpty
+        $template = Get-Content -LiteralPath (Join-Path $TestDrive 'state\progress-template.json') -Raw | ConvertFrom-Json
+        @($template.artifacts.PSObject.Properties) | Should -HaveCount 0
+    }
+
     It 'returns the verification result from required checks' {
         (Complete-RunbookVerification -Phase test -Passed 2 -Required 2) | Should -BeTrue
         (Complete-RunbookVerification -Phase test -Passed 1 -Required 2 -Failures @('missing')) | Should -BeFalse

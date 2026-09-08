@@ -17,6 +17,48 @@ if (-not (Test-Path -LiteralPath (Join-Path $ProjectPath 'index.html'))) {
     throw "index.html не найден: $ProjectPath"
 }
 
+function Invoke-NetlifyRunbookDeploy {
+    param(
+        [Parameter(Mandatory)][ValidateSet('preview', 'production')][string]$Kind
+    )
+
+    $arguments = @('deploy', '--dir', '.', '--json')
+    if ($Kind -eq 'production') {
+        $arguments = @('deploy', '--prod', '--dir', '.', '--json')
+    }
+
+    $rawOutput = (& netlify @arguments 2>&1 | Out-String).Trim()
+    $exitCode = $LASTEXITCODE
+    if ($exitCode -ne 0) {
+        if ($rawOutput) { Write-Host $rawOutput }
+        throw "Netlify deploy завершился с кодом $exitCode."
+    }
+
+    $jsonStart = $rawOutput.IndexOf('{')
+    $jsonEnd = $rawOutput.LastIndexOf('}')
+    if ($jsonStart -lt 0 -or $jsonEnd -le $jsonStart) {
+        if ($rawOutput) { Write-Host $rawOutput }
+        throw 'Netlify завершил deploy, но не вернул URL в JSON. Повтори тот же шаг.'
+    }
+    $result = $rawOutput.Substring($jsonStart, $jsonEnd - $jsonStart + 1) | ConvertFrom-Json
+
+    $url = $null
+    if ($Kind -eq 'production' -and $result.PSObject.Properties['url']) {
+        $url = [string]$result.url
+    }
+    if (-not $url -and $result.PSObject.Properties['deploy_url']) {
+        $url = [string]$result.deploy_url
+    }
+    if (-not $url -or $url -notmatch '^https://') {
+        throw 'Netlify deploy завершён, но корректный HTTPS URL не найден.'
+    }
+
+    $artifactName = if ($Kind -eq 'production') { 'netlifyProductionUrl' } else { 'netlifyPreviewUrl' }
+    Set-RunbookArtifact -Name $artifactName -Value $url
+    Write-RunbookOk "Netlify $Kind URL: $url"
+    return $url
+}
+
 Push-Location $ProjectPath
 try {
     if (-not (Test-Path -LiteralPath '.git')) {
@@ -69,9 +111,9 @@ try {
 
     if ($Preview) {
         if (-not (Test-RunbookCommand 'netlify')) { throw 'Netlify CLI не найден.' }
-        Invoke-RunbookCommand -FilePath 'netlify' -ArgumentList @('deploy', '--dir', '.') | Out-Null
+        $previewUrl = Invoke-NetlifyRunbookDeploy -Kind preview
         Mark-RunbookStep '06w-first-site:previewed'
-        Write-RunbookOk 'Preview deploy завершён. Открой Draft URL и проверь страницу.'
+        Write-RunbookInfo "Открой preview и проверь страницу: $previewUrl"
     }
 
     if ($Production) {
@@ -79,9 +121,9 @@ try {
             throw 'Production остановлен: сначала сделай и проверь preview deploy.'
         }
         if (-not (Test-RunbookCommand 'netlify')) { throw 'Netlify CLI не найден.' }
-        Invoke-RunbookCommand -FilePath 'netlify' -ArgumentList @('deploy', '--prod', '--dir', '.') | Out-Null
+        $productionUrl = Invoke-NetlifyRunbookDeploy -Kind production
         Mark-RunbookStep '06w-first-site:production'
-        Write-RunbookOk 'Production deploy завершён. Проверь Website URL в браузере.'
+        Write-RunbookInfo "Проверь production сайт в браузере: $productionUrl"
     }
 
     if (-not ($Push -or $Preview -or $Production)) {

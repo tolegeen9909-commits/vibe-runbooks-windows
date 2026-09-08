@@ -58,6 +58,47 @@ jobs:
             exit 1
           }
 
+      - name: Parse and smoke test with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          if ($PSVersionTable.PSVersion.Major -ne 5) {
+            throw "Expected Windows PowerShell 5.1, found $($PSVersionTable.PSVersion)."
+          }
+
+          $allErrors = @()
+          Get-ChildItem -Path . -Filter '*.ps1' -Recurse | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$parseErrors
+            ) | Out-Null
+            if ($parseErrors) {
+              $allErrors += $parseErrors
+            }
+          }
+          if ($allErrors.Count -gt 0) {
+            $allErrors | Format-List | Out-String | Write-Error
+            exit 1
+          }
+
+          $smokeRoot = Join-Path $env:RUNNER_TEMP 'vibe-runbooks-ps51-smoke'
+          New-Item -ItemType Directory -Path (Join-Path $smokeRoot 'state') -Force | Out-Null
+          Copy-Item .\state\progress-template.json (Join-Path $smokeRoot 'state\progress-template.json')
+          . .\scripts\lib.ps1
+          $script:RunbookRoot = $smokeRoot
+          $linePath = Join-Path $smokeRoot 'ignore'
+          Add-LineOnce -Path $linePath -Line '.env' | Out-Null
+          Add-LineOnce -Path $linePath -Line '.env' | Out-Null
+          Mark-RunbookStep 'ci:ps51-smoke'
+          Set-RunbookArtifact -Name 'ciUrl' -Value 'https://example.test'
+          $state = Read-RunbookState
+          if (@($state.completedSteps) -notcontains 'ci:ps51-smoke') { throw 'State marker was not saved.' }
+          if ((Get-RunbookArtifact -Name 'ciUrl') -ne 'https://example.test') { throw 'Artifact was not saved.' }
+          if (@(Get-Content -LiteralPath $linePath).Count -ne 1) { throw 'Add-LineOnce was not idempotent.' }
+          Remove-Item -LiteralPath $smokeRoot -Recurse -Force
+
       - name: Analyze PowerShell
         shell: pwsh
         run: |
