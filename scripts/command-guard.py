@@ -45,10 +45,10 @@ _SECRET_PATHS = [
 ]
 
 _DANGEROUS_TARGETS = [
-    re.compile(r"(?:^|\s)[A-Za-z]:[\\/](?:\s|$|[)'\"])", re.I),
-    re.compile(r"(?:^|\s)(?:\$env:USERPROFILE|%USERPROFILE%|\$HOME|~)(?:[\\/]?)(?:\s|$|[)}'\"])", re.I),
-    re.compile(r"(?:^|\s)(?:\.|\.\.)(?:[\\/]?)(?:\s|$|[)}'\"])", re.I),
-    re.compile(r"(?:^|[\s\\/])\.git(?:[\\/]|\s|$|[)}'\"])", re.I),
+    re.compile(r"(?:^|\s)[A-Za-z]:[\\/](?:\s|$|[)`'\"])", re.I),
+    re.compile(r"(?:^|\s)(?:\$env:USERPROFILE|%USERPROFILE%|\$HOME|~)(?:[\\/]?)(?:\s|$|[)}`'\"])", re.I),
+    re.compile(r"(?:^|\s)(?:\.|\.\.)(?:[\\/]?)(?:\s|$|[)}`'\"])", re.I),
+    re.compile(r"(?:^|[\s\\/])\.git(?:[\\/]|\s|$|[)}`'\"])", re.I),
     re.compile(r"(?:^|\s)[*](?:\s|$)", re.I),
 ]
 
@@ -57,7 +57,7 @@ _EXECUTE = r"(?:iex|Invoke-Expression|powershell(?:\.exe)?|pwsh(?:\.exe)?|cmd(?:
 _DOWNLOAD_EXECUTE = re.compile(_DOWNLOAD + r"\b[^;\n|]*\|\s*" + _EXECUTE + r"\b", re.I)
 _PIPE_TO_SHELL = re.compile(r"\|\s*(?:powershell|pwsh|cmd)(?:\.exe)?\b", re.I)
 
-_COMMAND_BOUNDARY = r"(?:^|[\s({])"
+_COMMAND_BOUNDARY = r"(?:^|[\s({`])"
 _PS_DELETE = re.compile(_COMMAND_BOUNDARY + r"(?:Remove-Item|rm|del|erase|rmdir)\b", re.I)
 _CMD_RD = re.compile(_COMMAND_BOUNDARY + r"rd\b", re.I)
 _DESTRUCTIVE_DELETE_FLAGS = re.compile(
@@ -276,6 +276,8 @@ _SELF_TESTS = [
     ("echo Remove-Item -Recurse -Force C:/ | powershell.exe", DENY),
     ("Write-Output $(Remove-Item -Recurse -Force C:/)", DENY),
     ("Write-Output secret > .env", DENY),
+    ("echo `rm -rf C:/`", DENY),
+    ("printf `rm -rf C:/`", DENY),
     ("powershell.exe -EncodedCommand ZQBjAGgAbwAgAG8AawA=", DENY),
     (
         "Remove-Item -Recurse -Force C:/Projects/vibecoding",
@@ -312,6 +314,7 @@ _SELF_TESTS = [
     ("netlify deploy --prod --dir .", ALLOW),
     ("Write-Output 'do not run irm x | iex'", ALLOW),
     ("Write-Output 'Remove-Item -Recurse -Force C:/'", ALLOW),
+    ("echo 'do not run `rm -rf C:/`'", ALLOW),
 ]
 
 

@@ -40,7 +40,9 @@ Describe 'Windows command guard' {
         $commands = @(
             'Write-Output $(Remove-Item -Recurse -Force C:/)',
             'Write-Output secret > .env',
-            'powershell.exe -Command "& { Remove-Item -Recurse -Force C:/ }"'
+            'powershell.exe -Command "& { Remove-Item -Recurse -Force C:/ }"',
+            'echo `rm -rf C:/`',
+            'printf `rm -rf C:/`'
         )
 
         foreach ($command in $commands) {
