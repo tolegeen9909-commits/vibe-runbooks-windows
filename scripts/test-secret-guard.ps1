@@ -28,7 +28,7 @@ try {
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'README.md') | Out-Null
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('commit', '--quiet', '-m', 'test: baseline') | Out-Null
 
-        $testToken = 'AK' + 'IA' + 'Q7W8E9R0T1Y2U3I4'
+        $testToken = 'AK' + 'IA' + 'Q7W6E5R4T3Y2U7I6'
         "aws_access_key_id=$testToken" | Set-Content -LiteralPath 'test-secret.txt' -Encoding Ascii
         Invoke-RunbookCommand -FilePath 'git' -ArgumentList @('add', 'test-secret.txt') | Out-Null
         & gitleaks git --pre-commit --staged --redact --no-banner *> $null

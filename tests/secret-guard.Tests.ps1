@@ -55,7 +55,7 @@ Describe 'secret guard' {
             & git add README.md
             & git commit --quiet -m 'test: baseline'
 
-            $testToken = 'AK' + 'IA' + 'Q7W8E9R0T1Y2U3I4'
+            $testToken = 'AK' + 'IA' + 'Q7W6E5R4T3Y2U7I6'
             "aws_access_key_id=$testToken" | Set-Content -LiteralPath 'leak.txt' -Encoding Ascii
             & git add leak.txt
             & $gitleaks.Source git --pre-commit --staged --redact --no-banner *> $null
