@@ -65,7 +65,7 @@ git --version
 
 ### 4. Склонируй комплект
 
-Репозиторий приватный: владелец должен сначала дать твоему GitHub-аккаунту доступ. Затем выполни:
+Репозиторий публичный: его можно скачать без GitHub-аккаунта. Выполни:
 
 ```powershell
 New-Item -ItemType Directory -Path C:\Projects -Force
@@ -74,7 +74,7 @@ git clone https://github.com/tolegeen9909-commits/vibe-runbooks-windows.git
 Set-Location C:\Projects\vibe-runbooks-windows
 ```
 
-Если Git откроет браузер, войди в GitHub там. Не вставляй пароль или токен в терминал и чат.
+Для этого публичного клонирования вход в GitHub не нужен. Пароли и токены никогда не вставляй в терминал или чат.
 
 ### 5. Открой папку в Codex
 

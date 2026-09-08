@@ -224,7 +224,7 @@ AGENTS.md
 - [x] Написать README, INDEX, ритуалы, полную инструкцию гида и troubleshooting.
 - [x] Добавить Pester-тесты, Python self-test и Windows GitHub Actions.
 - [x] Выполнить отдельный review по спецификации и устранить замечания.
-- [x] Создать private GitHub-репозиторий `vibe-runbooks-windows`.
+- [x] Создать GitHub-репозиторий `vibe-runbooks-windows`; после приёмки владелец явно изменил его видимость на public.
 - [x] Проверить diff на секреты и случайные файлы.
 - [x] Сделать сфокусированный commit и push feature-ветки.
 - [x] Открыть pull request; дождаться успешного Windows CI.
