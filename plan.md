@@ -2,7 +2,7 @@
 
 Связанная спецификация: `docs/specs/2026-09-08-vibe-runbooks-windows.md`.
 
-Статус: Gate 4 — устранение замечаний независимого review.
+Статус: Gate 4 пройден — независимое review не нашло оставшихся P1/P2; Windows CI успешен.
 
 ## Архитектура и поток работы
 
@@ -222,12 +222,12 @@ AGENTS.md
 - [x] Реализовать итоговый checkpoint по выбранным трекам.
 - [x] Добавить backend appendix без включения в основной маршрут.
 - [x] Написать README, INDEX, ритуалы, полную инструкцию гида и troubleshooting.
-- [ ] Добавить Pester-тесты, Python self-test и Windows GitHub Actions.
-- [ ] Выполнить отдельный review по спецификации и устранить замечания.
+- [x] Добавить Pester-тесты, Python self-test и Windows GitHub Actions.
+- [x] Выполнить отдельный review по спецификации и устранить замечания.
 - [x] Создать private GitHub-репозиторий `vibe-runbooks-windows`.
-- [ ] Проверить diff на секреты и случайные файлы.
-- [ ] Сделать сфокусированный commit и push feature-ветки.
-- [ ] Открыть pull request; дождаться успешного Windows CI.
+- [x] Проверить diff на секреты и случайные файлы.
+- [x] Сделать сфокусированный commit и push feature-ветки.
+- [x] Открыть pull request; дождаться успешного Windows CI.
 
 ## План проверки
 
