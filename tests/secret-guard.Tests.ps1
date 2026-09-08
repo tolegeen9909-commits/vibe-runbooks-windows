@@ -3,6 +3,12 @@
 BeforeAll {
     $repoRoot = Split-Path -Parent $PSScriptRoot
     $gitleaks = Get-Command gitleaks -ErrorAction SilentlyContinue
+    if (-not $gitleaks) {
+        $wingetCommand = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\gitleaks.exe'
+        if (Test-Path -LiteralPath $wingetCommand) {
+            $gitleaks = Get-Command $wingetCommand
+        }
+    }
 }
 
 Describe 'secret guard' {

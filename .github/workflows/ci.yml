@@ -2,6 +2,8 @@ name: Windows CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
 
 permissions:
@@ -32,7 +34,8 @@ jobs:
             $wingetLinks = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links'
             $env:PATH = "$wingetLinks;$env:PATH"
           }
-          Get-Command gitleaks -ErrorAction Stop
+          $gitleaksCommand = Get-Command gitleaks -ErrorAction Stop
+          Split-Path -Parent $gitleaksCommand.Source | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Parse every PowerShell script
         shell: pwsh

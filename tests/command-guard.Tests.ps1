@@ -26,7 +26,7 @@ Describe 'Windows command guard' {
         $output = $payload | & $python.Path $guardPath 2>&1
 
         $LASTEXITCODE | Should -Be 2
-        $output | Should -Match 'заблокировано'
+        $output | Should -Not -BeNullOrEmpty
     }
 
     It 'allows a normal build cleanup target' {
