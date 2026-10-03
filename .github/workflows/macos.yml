@@ -1,0 +1,46 @@
+name: macOS Runbook CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: macOS route and safety tests
+    runs-on: macos-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Parse Mac shell scripts
+        shell: bash
+        run: |
+          find mac-mini-24x7 -type f -name '*.sh' -exec bash -n {} \;
+
+      - name: Validate progress schema
+        shell: bash
+        run: |
+          python3 -m json.tool mac-mini-24x7/state/progress-template.json >/dev/null
+          plutil -convert json -o /dev/null mac-mini-24x7/state/progress-template.json
+
+      - name: Run Mac route self-tests
+        shell: bash
+        run: |
+          bash mac-mini-24x7/tests/route.sh
+
+      - name: Run read-only preflight smoke
+        shell: bash
+        run: |
+          set +e
+          output=$(bash mac-mini-24x7/00-preflight/check-system.sh 2>&1)
+          code=$?
+          set -e
+          printf '%s\n' "$output"
+          test "$code" -eq 0 -o "$code" -eq 1
+          printf '%s\n' "$output" | grep -E '^(PASS|FAIL): target hardware is '

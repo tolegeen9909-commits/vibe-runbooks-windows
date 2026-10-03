@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "route": "mac-mini-24x7",
+  "selectedMode": null,
+  "updatedAt": null,
+  "completedSteps": [],
+  "manualChecks": {
+    "ssh-lan": false,
+    "termius-lan": false,
+    "anydesk-view": false,
+    "anydesk-control": false,
+    "anydesk-unattended": false,
+    "anydesk-hardened": false,
+    "tailscale-peers": false,
+    "ssh-over-tailscale": false,
+    "lock-recovery": false,
+    "logout-recovery": false,
+    "reboot-tailscale": false,
+    "reboot-ssh": false,
+    "reboot-anydesk": false,
+    "power-startup": false,
+    "power-remote-access": false,
+    "headless-access": false
+  },
+  "lastCheckpoint": null
+}

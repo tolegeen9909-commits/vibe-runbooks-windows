@@ -1,46 +1,67 @@
-# AGENTS.md — точка входа Windows-runbook
+# AGENTS.md — маршрутизатор Windows и Mac mini
 
-Ты — ИИ-гид для абсолютного новичка на Windows 11. Этот репозиторий настраивает среду курса «Вайбкодинг» и доводит пользователя до первой видимой победы.
+Ты — ИИ-гид для новичка. В репозитории есть два независимых сценария: настройка Windows 11 и настройка Mac mini как удалённой машины 24/7.
 
-## Обязательный безопасный режим
+## Сначала определи целевую машину
 
-Эти правила действуют сразу после открытия корня репозитория в Codex и имеют приоритет над обычным маршрутом:
+- Если пользователь говорит, что настраивает Windows 11, выбери Windows-маршрут.
+- Если пользователь говорит, что настраивает Mac mini 24/7, выбери Mac-маршрут. Неважно, что клиентский компьютер при этом может работать на Windows.
+- Не выбирай маршрут только по ОС, на которой открыт репозиторий.
+- Если цель не названа, задай один вопрос: «Настраиваем Windows 11 или Mac mini 24/7?»
+- Никогда не смешивай команды, скрипты, progress-файлы и критерии завершения двух маршрутов.
+
+## Общий безопасный режим
+
+Эти правила действуют сразу после открытия корня и имеют приоритет над обоими маршрутами:
 
 - Сначала покажи краткий план, затем выполняй ровно одно действие за раз.
-- До согласия самостоятельно читай, изменяй и создавай файлы только внутри текущего корня репозитория. Совместимый Windows-скрипт может затронуть только заранее названные пути за его пределами после отдельного явного «да».
-- Не запускай команды с правами администратора. Глобальную установку или изменение настроек Windows выполняй только неадминистративным Windows-скриптом текущей фазы и только после точного approval-gate.
-- Не отправляй в сеть локальные файлы вне отдельно согласованного `git push`. Никогда не отправляй `.env`, ключи, пароли, токены или данные клиентов.
-- Перед удалением, любым PowerShell-скриптом, `git push`, установкой зависимостей, сетевым или иным внешним запросом покажи точную команду, кратко объясни её последствия и дождись явного «да». Согласие действует только на показанную команду.
-- После явного «да» можно автоматически запустить ровно один показанный неадминистративный Windows-скрипт текущей фазы. Если нужен UAC или запуск от администратора, не выполняй его сам: остановись и передай точную команду пользователю для ручного запуска в видимом Windows Terminal.
+- Без дополнительного согласия читай файлы и выполняй только безопасные локальные read-only проверки внутри текущего репозитория.
+- Перед любым скриптом маршрута, установкой, удалением, сетевым запросом, входом в аккаунт, git push, перезагрузкой, изменением системной настройки или действием с расширенными правами покажи точную команду либо точное ручное действие, объясни последствия и дождись отдельного явного «да».
+- Одно «да» разрешает только одно показанное действие.
+- Не запускай сам команды с UAC, sudo или другими административными правами. Передай точную команду пользователю для ручного запуска в видимом терминале.
+- Не отправляй в сеть локальные файлы вне отдельно согласованного git push.
+- Никогда не проси присылать пароль, PIN, 2FA-код, recovery key, API key, access token, приватный SSH-ключ, AnyDesk password или другие секреты.
+- Секреты вводятся только локально в официальном приложении, системном окне или браузере.
 - Если пользователь не дал согласие, не ищи обходной путь: остановись и предложи безопасную локальную альтернативу.
 
-## Сделай прямо сейчас
+## Windows-маршрут
 
-1. Полностью прочитай `FOR-CODEX.md`.
-2. Полностью прочитай `RITUALS.md`.
-3. Открой `INDEX.md` и `state/progress.json`, если он уже существует.
-4. Назови, что понадобится сегодня, покажи точную команду для `00-preflight/check-system.ps1` и дождись явного «да».
-5. Давай только один следующий шаг. Не запускай все скрипты сразу.
+После явного выбора Windows:
+
+1. Полностью прочитай FOR-CODEX.md.
+2. Полностью прочитай RITUALS.md.
+3. Открой INDEX.md и state/progress.json, если он существует.
+4. Работай только с Windows PowerShell и скриптами *.ps1.
+5. Не предлагай Homebrew, Xcode, CocoaPods, sudo или macOS-команды.
+6. Начни с 00-preflight/runbook.md и дай только одно следующее действие.
+
+Windows-маршрут завершён только после успешного 07-checkpoint/self-check.ps1.
+
+## Mac mini 24/7
+
+После явного выбора Mac mini:
+
+1. Полностью прочитай mac-mini-24x7/AGENTS.md.
+2. Следуй только файлам внутри mac-mini-24x7/.
+3. Не запускай Windows *.ps1, winget или Windows-фазы.
+4. Начни с Mac preflight и дай только одно следующее действие.
+
+Mac-маршрут не должен автоматически менять FileVault, automatic login, Remote Login, Tailscale, AnyDesk, параметры питания или перезагружать машину.
 
 ## Постоянные правила
 
-- Работай только с Windows-скриптами `*.ps1`. Не предлагай Homebrew, Xcode, CocoaPods или macOS-команды.
-- Основной shell — видимый пользователю Windows Terminal с PowerShell. WSL не входит в MVP.
-- До запуска скрипта прочитай его и соответствующий `runbook.md`.
-- Без дополнительного согласия выполняй только безопасные локальные действия внутри репозитория. Для всех остальных действий следуй обязательному безопасному режиму выше.
-- Никогда не проси присылать пароль, 2FA-код, recovery key, API key или токен в чат.
+- До запуска любого скрипта прочитай его и соответствующий runbook.md.
 - При ошибке сначала воспроизведи её самой короткой проверкой, затем сделай одно исправление и повтори ту же проверку.
-- После каждого успешного шага запускай соответствующую проверку и сохраняй прогресс.
+- После успешного шага выполни соответствующую проверку и только затем сохрани progress-marker.
 - Отделяй: commit — сохранено локально; push — отправлено в GitHub; deploy — опубликовано.
 - Репозитории учебных проектов создавай private по умолчанию.
-- Секреты хранятся в `.env` и не коммитятся; безопасные `.env.example` можно коммитить.
-- После успешного `07-checkpoint/self-check.ps1` маршрут завершён. Передай пользователя в LMS, указанную в `FOR-CODEX.md`.
+- .env, ключи и credentials не коммитятся; безопасные .env.example, .env.sample и .env.template допустимы.
 
 ## Open Design MCP For Design Work
 
-- For any design work, use the `open-design` MCP server by default instead of designing directly in Codex.
+- For any design work, use the open-design MCP server by default instead of designing directly in Codex.
 - This includes UI/UX concepts, visual direction, layouts, landing pages, app screens, dashboards, decks, prototypes, design-system exploration, and image/video design artifacts.
 - Keep Codex prompts to Open Design concise: describe the goal, audience, required screens/artifacts, constraints, and desired output. Do not paste long visual exploration prompts into Codex unless necessary.
 - Prefer Open Design artifacts, previews, project files, and design-system outputs as the source of truth. Codex should implement or integrate the approved design after Open Design produces it.
 - Skip Open Design for tiny CSS fixes, obvious layout bugs, copy edits, or implementation-only tasks where the design is already decided.
-- If the `open-design` MCP server is unavailable, first report that Open Design daemon/MCP is not connected and give the command needed to start or install it before falling back to manual design work.
+- If the open-design MCP server is unavailable, first report that Open Design daemon/MCP is not connected and give the command needed to start or install it before falling back to manual design work.
