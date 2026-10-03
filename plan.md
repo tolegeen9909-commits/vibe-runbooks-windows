@@ -2,7 +2,7 @@
 
 Связанная спецификация: docs/specs/2026-10-03-mac-mini-24x7-runbook.md.
 
-Статус: Gate 3 реализован; локальные Gate 4 review и tests пройдены без P0/P1/P2 блокеров. Остались commit, push, stacked PR и GitHub CI.
+Статус: Gate 4 завершён. Независимые review и tests пройдены без P0/P1/P2 блокеров; feature-ветка опубликована, открыт stacked PR #3, Windows и macOS GitHub CI прошли. Merge не выполнялся.
 
 Рабочая ветка: codex/mac-mini-24x7-runbook, основана на codex/windows-safe-install-rules из открытого PR #2. До объединения Mac-маршрута PR #2 должен быть сохранён и предпочтительно объединён первым.
 
@@ -216,8 +216,8 @@ mac-mini-24x7/SOURCES.md хранит ссылки и дату последне�
 - [x] Выполнить независимый review по спецификации.
 - [x] Выполнить независимый тестовый проход и повторить проверки после исправлений.
 - [x] Проверить diff на секреты, реальные IP/ID, случайные файлы и несвязанные изменения.
-- [ ] Создать сфокусированный commit, push и stacked PR с prerequisite PR #2.
-- [ ] Дождаться зелёных Windows и macOS CI; merge не выполнять без команды finish.
+- [x] Создать сфокусированный commit, push и stacked PR с prerequisite PR #2.
+- [x] Дождаться зелёных Windows и macOS CI; merge не выполнять без команды finish.
 
 ## План проверки
 
