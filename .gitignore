@@ -1,6 +1,8 @@
 # Local progress and logs
 state/progress.json
 state/progress.log
+mac-mini-24x7/state/progress.json
+mac-mini-24x7/state/progress.log
 
 # Secrets
 .env
